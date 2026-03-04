@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.polymarket.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(pip install -r requirements.txt -q)",
+      "Bash(pip3 install -r /Users/jaykumar/Documents/ProjectPredictionMarket/requirements.txt -q)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 main.py scan --source polymarket --days 30)"
+    ]
+  }
+}

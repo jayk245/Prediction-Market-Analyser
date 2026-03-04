@@ -1,0 +1,27 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Scan reports (generated output — can be large and contain wallet data) ────
+reports/
+
+# ── Node / web ────────────────────────────────────────────────────────────────
+web/node_modules/
+web/dist/
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
