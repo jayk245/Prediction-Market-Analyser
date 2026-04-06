@@ -29,10 +29,46 @@ from config import (
     POLYMARKET_GAMMA_URL,
     POLYMARKET_DATA_URL,
     REQUEST_TIMEOUT,
+    NTFY_TOPIC,
 )
 from analyzers.realtime_detector import MarketState, analyze_market
 
 console = Console()
+
+# ── ntfy.sh notifications (fire-and-forget, only HIGH/CRITICAL) ───────────────
+
+_NOTIFY_SEVERITIES = {"CRITICAL", "HIGH"}
+
+
+def _send_ntfy(alert: dict):
+    """Post a push notification to ntfy.sh in a background thread."""
+    if not NTFY_TOPIC:
+        return
+    severity    = alert.get("severity", "HIGH")
+    signal      = alert.get("signal", "unknown").replace("_", " ")
+    source      = alert.get("_source", "?")
+    trades      = alert.get("triggering_trades", [])
+    market_name = (trades[0].get("market_name") if trades else None) or alert.get("market_id", "?")
+    desc        = alert.get("description", "")
+    fired_at    = alert.get("_fired_at", "")
+
+    title    = f"[{severity}] {signal.upper()} - {source}".encode("ascii", "ignore").decode()
+    message  = f"{market_name}\n{desc}" + (f"\n{fired_at} UTC" if fired_at else "")
+    priority = "urgent" if severity == "CRITICAL" else "high"
+
+    try:
+        httpx.post(
+            f"https://ntfy.sh/{NTFY_TOPIC}",
+            content=message.encode("utf-8"),
+            headers={
+                "Title":    title,
+                "Priority": priority,
+                "Tags":     f"warning,{source}",
+            },
+            timeout=5,
+        )
+    except Exception:
+        pass  # never let notification errors affect the monitor
 
 SEVERITY_COLOR = {
     "CRITICAL": "bold red",
@@ -176,7 +212,11 @@ class AlertLog:
         self._maxlen = maxlen
 
     def add(self, alert: dict):
-        self._alerts.insert(0, {**alert, "_fired_at": _now_utc().strftime("%H:%M:%S")})
+        enriched = {**alert, "_fired_at": _now_utc().strftime("%H:%M:%S")}
+        self._alerts.insert(0, enriched)
+        if alert.get("severity") in _NOTIFY_SEVERITIES:
+            import threading
+            threading.Thread(target=_send_ntfy, args=(enriched,), daemon=True).start()
         if len(self._alerts) > self._maxlen:
             self._alerts.pop()
 

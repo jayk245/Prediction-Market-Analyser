@@ -72,3 +72,10 @@ MAX_PAGES = 50                # safety cap so we don't loop forever
 
 KALSHI_API_KEY_ID: Optional[str] = os.getenv("KALSHI_API_KEY_ID")
 KALSHI_PRIVATE_KEY_PATH: Optional[str] = os.getenv("KALSHI_PRIVATE_KEY_PATH")
+
+
+# ── ntfy.sh push notifications ───────────────────────────────────────────────
+# Pick a unique topic name at https://ntfy.sh (no account needed).
+# Subscribe on your phone using the ntfy app.
+
+NTFY_TOPIC: str = os.getenv("NTFY_TOPIC", "")   # e.g. "my-surveillance-abc123"
